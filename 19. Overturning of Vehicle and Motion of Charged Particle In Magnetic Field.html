@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> Quiz – 19. Overturning of Vehicle and Motion of Charged Particle In Magnetic Field</title>
+  <style>
+    body{font-family:Arial, sans-serif;padding:20px;background:#121212;color:#f0f0f0;}
+    #logo{display:block;margin:0 auto 25px;max-width:180px;}
+    #name-container{background:#1e1e1e;padding:30px;border-radius:6px;max-width:420px;margin:0 auto;}
+    #name-container input{width:100%;padding:10px;margin:10px 0 15px;border:none;border-radius:4px;font-size:16px;}
+    #quiz-container{display:none;}
+    .question{border:1px solid #333;padding:15px;margin-bottom:20px;border-radius:5px;background:#1e1e1e;}
+    .question h3{margin:0 0 10px;}
+    /* each option is a label-row: radio + text on same line, one option per row */
+    .option-item {
+      display: flex;                 /* radio + text in same line */
+      align-items: center;
+      gap: 8px;                      /* spacing between radio and text */
+      margin: 6px 0;                 /* space between options */
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: #2a2a2a;
+      color: #ccc;
+      cursor: pointer;
+    }
+    .option-item input[type="radio"] {
+      margin: 0;                     /* no extra offset */
+    }
+    .submit-button,.toggle-button,.dontknow-button{margin-top:10px;padding:6px 12px;background:#007BFF;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:5px;}
+    .solution{display:none;margin-top:10px;background:#2d2d2d;padding:10px;border-left:4px solid #28a745;}
+    #scorecard{background:#2d2d2d;padding:15px;border-radius:6px;margin-top:30px;display:none;}
+    #timer{font-weight:bold;color:#00ffcc;}
+    #studentPrintName{text-align:center;font-size:18px;font-weight:bold;margin-top:-15px;margin-bottom:5px;display:none;}
+    #examDateTime{text-align:center;font-size:14px;margin-bottom:20px;display:none;}
+    @media print {
+      body { background: #fff; color:#000; }
+      .submit-button, .dontknow-button, .toggle-button, #reportBtn, #reportModal { display:none !important; }
+      #name-container { display:none !important; }
+    }
+
+    /* 🔹 Floating Report Button */
+    #reportBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+
+    /* 🔹 Popup Modal */
+    #reportModal {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 8px;
+      width: 260px;
+      z-index: 1001;
+    }
+    #reportModal textarea {
+      width: 100%;
+      height: 80px;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      resize: none;
+      font-size: 14px;
+    }
+    #reportModal button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #sendReport { background: #28a745; color: white; }
+    #closeReport { background: #dc3545; color: white; margin-left: 5px; }
+  </style>
+  <!-- MathJax -->
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<img id="logo" src="https://i.ibb.co/WNZTWPwv/LOGO-PNG-2025-fab.png" alt="Logo" />
+
+<div id="studentPrintName"></div>
+<div id="examDateTime"></div>
+
+<div id="name-container">
+  <h2>Enter your name to begin</h2>
+  <input type="text" id="studentNameInput" placeholder="Your Name" />
+  <button class="submit-button" onclick="startQuiz()">Start Quiz</button>
+</div>
+
+<div id="quiz-container">
+
+  <h2> Quiz – 19. Overturning of Vehicle and Motion of Charged Particle In Magnetic Field</h2>
+  
+  <p><strong>Time Elapsed:</strong> <span id="timer">00:00</span></p>
+  <div id="questions-container"></div>
+
+  <div style="margin-top:30px;">
+    <button class="submit-button" onclick="finalSubmit()">Final Submit</button>
+    <button class="submit-button" onclick="printQuestions()">Print Questions</button>
+    <button class="submit-button" id="printScoreBtn" onclick="printScorecard()" style="display:none;">Save or Print Scorecard</button>
+    <!-- 🔹 WhatsApp button instead of PDF -->
+    <button class="submit-button" id="shareWhatsappBtn" style="display:none;">SHARE on WhatsApp</button>
+  </div>
+
+ <div id="scorecard">
+  <h3>Your Scorecard</h3>
+  <p id="scoreText"></p>
+  <table id="scoreTable" border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;margin-top:15px;">
+    <thead style="background:#333;color:#fff;">
+      <tr>
+        <th>Q.No</th>
+        <th>Question</th>
+        <th>Your Answer</th>
+        <th>Correct Answer</th>
+        <th>Result</th>
+        <th>Solution</th>
+      </tr>
+    </thead>
+    <tbody id="scoreDetails"></tbody>
+  </table>
+</div>
+
+<!-- 🔹 Floating Report Button -->
+<button id="reportBtn">Report Mistake</button>
+
+<!-- 🔹 Popup Modal -->
+<div id="reportModal">
+  <textarea id="reportMsg" placeholder="Describe the mistake..."></textarea>
+  <div style="text-align:right;">
+    <button id="sendReport">Send</button>
+    <button id="closeReport">Close</button>
+  </div>
+</div>
+
+<script>
+const Q = [
+  {
+    id: "q1",
+    text: "Which condition correctly describes the overturning (tipping) of a vehicle negotiating a turn?",
+    options: [
+      "The center of mass moves beyond the base (wheel contact line) causing the vehicle to pivot about the outer wheel",
+      "The coefficient of friction becomes zero",
+      "The vehicle's speed equals the skidding speed always",
+      "The braking force exceeds engine force"
+    ],
+    correct: "A",
+    solution: "Overturning occurs when the line of action of the centre of mass falls outside the base of support (the wheels), so the vehicle pivots about the outer wheel and tips over."
+  },
+  {
+    id: "q2",
+    text: "For a vehicle of half-track width \\(b\\) (distance from centre to outer wheel), centre-of-mass height \\(h\\), turning radius \\(r\\), and gravitational acceleration \\(g\\), the tipping (overturning) condition in terms of speed \\(v\\) is:",
+    options: [
+      "\\(v \\ge \\sqrt{\\dfrac{gbr}{h}}\\)",
+      "\\(v \\ge \\sqrt{\\dfrac{gh}{br}}\\)",
+      "\\(v \\ge \\sqrt{\\dfrac{g h r}{b}}\\)",
+      "\\(v \\ge \\sqrt{\\dfrac{gb}{hr}}\\)"
+    ],
+    correct: "A",
+    solution: "Moment balance about the outer wheel: outward (centrifugal) moment = \\(m\\dfrac{v^2}{r} \\cdot h\\), restoring moment = \\(mg\\cdot b\\). Tipping when \\(m v^2 h / r \\ge mg b\\) → \\(v^2 \\ge g b r / h\\) → \\(v \\ge \\sqrt{g b r / h}\\)."
+  },
+  {
+    id: "q3",
+    text: "A car has centre-of-mass height \\(h=0.6\\,\\mathrm{m}\\) and half-track width \\(b=0.8\\,\\mathrm{m}\\). It negotiates a curve of radius \\(r=20\\,\\mathrm{m}\\). (Take \\(g=10\\,\\mathrm{m/s^2}\\).) The tipping speed is approximately:",
+    options: [
+      "\\(12.0\\,\\mathrm{m/s}\\)",
+      "\\(14.0\\,\\mathrm{m/s}\\)",
+      "\\(16.33\\,\\mathrm{m/s}\\)",
+      "\\(18.0\\,\\mathrm{m/s}\\)"
+    ],
+    correct: "C",
+    solution: "Using \\(v=\\sqrt{g b r / h}=\\sqrt{10\\times0.8\\times20/0.6}=\\sqrt{266.666...}=16.33\\,\\mathrm{m/s}\\) (≈16.3 m/s)."
+  },
+  {
+    id: "q4",
+    text: "Same car as Q3 is on the same turn; the tyre–road coefficient of friction is \\(\\mu=0.6\\). Which will occur first as speed increases from rest?",
+    options: [
+      "The car will skid outwards before it overturns",
+      "The car will overturn before it skids",
+      "Both happen simultaneously",
+      "Neither — it will remain stable at any speed"
+    ],
+    correct: "A",
+    solution: "Skidding limit: \\(v_{skid}=\\sqrt{\\mu g r}=\\sqrt{0.6\\times10\\times20}=\\sqrt{120}=10.95\\,\\mathrm{m/s}\\). Tipping speed ≈16.33 m/s. Since \\(v_{skid}<v_{tip}\\), skidding occurs before overturning."
+  },
+  {
+    id: "q5",
+    text: "How does lowering the vehicle's centre-of-mass height \\(h\\) affect the tipping speed (all else constant)?",
+    options: [
+      "Tipping speed increases",
+      "Tipping speed decreases",
+      "Tipping speed remains the same",
+      "Tipping speed becomes independent of radius"
+    ],
+    correct: "A",
+    solution: "Tipping speed \\(v_t=\\sqrt{g b r / h}\\) is inversely proportional to \\(\\sqrt{h}\\). Lowering \\(h\\) increases \\(v_t\\), improving stability."
+  },
+  {
+    id: "q6",
+    text: "Moment (torque) about the outer wheel due to the outward (inertial/centrifugal) effect during a turn at speed \\(v\\) is given by:",
+    options: [
+      "\\(M_{out}=m\\dfrac{v^2}{r}\\cdot h\\)",
+      "\\(M_{out}=m\\dfrac{v^2}{r}\\cdot b\\)",
+      "\\(M_{out}=mg\\cdot h\\)",
+      "\\(M_{out}=mg\\cdot r\\)"
+    ],
+    correct: "A",
+    solution: "The outward (inertial) force acting at the centre of mass is \\(m v^2/r\\) (horizontal); its overturning moment about the outer wheel = (force)×(vertical lever arm) = \\(m v^2/r \\times h\\)."
+  },
+  {
+    id: "q7",
+    text: "How does banking the road (tilting the road surface) affect the tendency to overturn for a given speed?",
+    options: [
+      "Banking reduces the tendency to overturn because the normal reaction has a component providing centripetal force",
+      "Banking increases tendency to overturn",
+      "Banking has no effect on overturning",
+      "Banking converts overturning into skidding always"
+    ],
+    correct: "A",
+    solution: "On a banked road, the normal reaction has a horizontal component that provides part (or all) of the needed centripetal force, reducing lateral inertial moment and so reducing overturning tendency."
+  },
+  {
+    id: "q8",
+    text: "In the ideal tipping formula \\(v=\\sqrt{g b r / h}\\), which of the following quantities does NOT affect the tipping speed?",
+    options: [
+      "Mass of the vehicle",
+      "Half-track width \\(b\\)",
+      "Turn radius \\(r\\)",
+      "Centre-of-mass height \\(h\\)"
+    ],
+    correct: "A",
+    solution: "Mass \\(m\\) cancels out in the tipping condition (moments both proportional to \\(m\\)), so tipping speed is independent of mass in this idealised model."
+  },
+  {
+    id: "q9",
+    text: "Magnitude of the magnetic force on a particle of charge \\(q\\) moving with velocity \\(v\\) at angle \\(\\theta\\) to a magnetic field \\(B\\) is:",
+    options: [
+      "\\(|F| = q v B \\sin\\theta\\)",
+      "\\(|F| = q v B \\cos\\theta\\)",
+      "\\(|F| = q v^2 B\\)",
+      "\\(|F| = m v^2 / r\\)"
+    ],
+    correct: "A",
+    solution: "Magnetic force (Lorentz force) magnitude is \\(|\\vec F| = |q| v B \\sin\\theta\\) where \\(\\theta\\) is angle between \\(\\vec v\\) and \\(\\vec B\\)."
+  },
+  {
+    id: "q10",
+    text: "A particle of mass \\(0.1\\,\\mathrm{kg}\\) and charge \\(2.0\\,\\mathrm{C}\\) moves at \\(10\\,\\mathrm{m/s}\\) perpendicular to a uniform magnetic field of \\(0.5\\,\\mathrm{T}\\). The radius of its circular path is:",
+    options: [
+      "\\(0.25\\,\\mathrm{m}\\)",
+      "\\(1.0\\,\\mathrm{m}\\)",
+      "\\(2.0\\,\\mathrm{m}\\)",
+      "\\(4.0\\,\\mathrm{m}\\)"
+    ],
+    correct: "B",
+    solution: "For perpendicular motion, \\(r=\\dfrac{mv}{qB}=\\dfrac{0.1\\times10}{2\\times0.5}=\\dfrac{1}{1}=1.0\\,\\mathrm{m}\\)."
+  },
+  {
+    id: "q11",
+    text: "Which statement about the cyclotron (circular) period \\(T\\) of a charged particle in a uniform magnetic field \\(B\\) is correct (for motion perpendicular to \\(B\\))?",
+    options: [
+      "\\(T = \\dfrac{2\\pi m}{qB}\\), independent of particle speed",
+      "\\(T = \\dfrac{2\\pi m}{qB}\\), depends on speed",
+      "\\(T = \\dfrac{2\\pi m v}{qB}\\)",
+      "\\(T = \\dfrac{2\\pi qB}{m}\\)"
+    ],
+    correct: "A",
+    solution: "Using \\(r=mv/(qB)\\) and \\(v=2\\pi r/T\\) gives \\(T=2\\pi m/(qB)\\). Note that \\(T\\) (and cyclotron frequency) is independent of speed (for perpendicular motion)."
+  },
+  {
+    id: "q12",
+    text: "Does the magnetic force do work on a charged particle moving in a magnetic field (neglect electric fields)?",
+    options: [
+      "Yes, it increases kinetic energy",
+      "Yes, it decreases kinetic energy",
+      "No, it does zero work (kinetic energy remains constant)",
+      "Only if the charge is negative"
+    ],
+    correct: "C",
+    solution: "Magnetic force is always perpendicular to instantaneous velocity (\\(\\vec F = q\\vec v\\times\\vec B\\)), so \\(\\vec F\\cdot\\vec v=0\\) and no work is done; the particle's speed (kinetic energy) remains constant."
+  },
+  {
+    id: "q13",
+    text: "A charged particle has velocity with components both perpendicular and parallel to a uniform magnetic field \\(\\vec B\\). Its trajectory will be:",
+    options: [
+      "A circle",
+      "A straight line",
+      "A helix (spiral) around the field line",
+      "A parabola"
+    ],
+    correct: "C",
+    solution: "The perpendicular component causes circular motion; the parallel component produces uniform motion along \\(\\vec B\\). Combined motion is a helix."
+  },
+  {
+    id: "q14",
+    text: "Direction of magnetic force on a positive charge moving with velocity \\(\\vec v\\) in magnetic field \\(\\vec B\\) is given by:",
+    options: [
+      "Along \\(\\vec v\\)",
+      "Along \\(\\vec B\\)",
+      "Perpendicular to both \\(\\vec v\\) and \\(\\vec B\\) in the direction of \\(\\vec v\\times\\vec B\\)",
+      "Opposite to \\(\\vec v\\)"
+    ],
+    correct: "C",
+    solution: "Lorentz force direction for positive charge is given by the right-hand rule: \\(\\vec F = q\\vec v\\times\\vec B\\), i.e. perpendicular to both \\(\\vec v\\) and \\(\\vec B\\) in the sense of \\(\\vec v\\times\\vec B\\)."
+  },
+  {
+    id: "q15",
+    text: "If the magnetic field strength \\(B\\) acting on a charged particle (fixed \\(m,q,v\\)) is doubled, how does the radius \\(r\\) of the circular path change?",
+    options: [
+      "The radius becomes half",
+      "The radius doubles",
+      "The radius remains the same",
+      "The radius becomes four times"
+    ],
+    correct: "A",
+    solution: "Since \\(r=mv/(qB)\\), doubling \\(B\\) makes \\(r\\) half (\\(r\\propto1/B\\))."
+  }
+]
+;
+
+
+
+let student = '';
+let timerHandle;
+let printMode = '';
+let examDateTime = '';
+
+/* 🔹 Extract Quiz Title */
+const quizTitle = document.title.split("Quiz")[1]?.trim() || document.title;
+
+function startQuiz() {
+  const name = document.getElementById('studentNameInput').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  student = name;
+  examDateTime = new Date().toLocaleString();
+  document.getElementById('name-container').style.display = 'none';
+  document.getElementById('quiz-container').style.display = 'block';
+  buildQuestions();
+  if (window.MathJax) MathJax.typesetPromise();
+  startTimer();
+}
+
+function buildQuestions() {
+  const out = document.getElementById('questions-container');
+  out.innerHTML = '';
+  Q.forEach((q, index) => {
+    const optionsHTML = q.options.map((opt, i) => {
+      const letter = String.fromCharCode(65 + i);
+      return `
+        <label class="option-item" for="${q.id}-${letter}">
+          <input type="radio" id="${q.id}-${letter}" name="${q.id}" value="${letter}" onchange="enableSubmit('${q.id}')">
+          ${letter}. ${opt}
+        </label>
+      `;
+    }).join('');
+    out.insertAdjacentHTML('beforeend', `
+      <div class="question" id="${q.id}-wrap">
+        <h3>Q${index + 1}. ${q.text}</h3>
+        <div class="options">${optionsHTML}</div>
+        <div id="${q.id}-buttons">
+          <button id="sub-${q.id}" class="submit-button" disabled onclick="grade('${q.id}')">Submit</button>
+          <button class="dontknow-button" onclick="skip('${q.id}')">I Don’t Know</button>
+        </div>
+        <button class="toggle-button" id="btn-sol-${q.id}" style="display:none;" onclick="toggleSolution('sol-${q.id}')">Show Solution</button>
+        <div class="solution" id="sol-${q.id}"><strong>Solution:</strong> ${q.solution}</div>
+      </div>
+    `);
+  });
+  if (window.MathJax) MathJax.typesetPromise(); // 🔹 Rerun MathJax
+}
+
+function enableSubmit(qid) { document.getElementById(`sub-${qid}`).disabled = false; }
+
+function grade(qid) {
+  const q = Q.find(x => x.id === qid);
+  const correct = q.correct;
+  const chosen = document.querySelector(`input[name="${qid}"]:checked`);
+  if (!chosen) return;
+
+  // lock all options for this question
+  document.querySelectorAll(`input[name="${qid}"]`).forEach(i => i.disabled = true);
+
+  // get the label (row) element that wraps the chosen input
+  const chosenLabel = chosen.closest('label.option-item');
+
+  // find the input for the correct value and its label
+  const correctInput = document.querySelector(`input[name="${qid}"][value="${correct}"]`);
+  const correctLabel = correctInput ? correctInput.closest('label.option-item') : null;
+
+  if (chosen.value === correct) {
+    // correct → only chosen turns green
+    if (chosenLabel) {
+      chosenLabel.style.background = '#28a745';
+      chosenLabel.style.color = '#fff';
+    }
+  } else {
+    // wrong → chosen turns red, correct turns green
+    if (chosenLabel) {
+      chosenLabel.style.background = '#dc3545';
+      chosenLabel.style.color = '#fff';
+    }
+    if (correctLabel) {
+      correctLabel.style.background = '#28a745';
+      correctLabel.style.color = '#fff';
+    }
+  }
+
+  // show solution immediately
+  document.getElementById(`sol-${qid}`).style.display = "block";
+
+  // hide the buttons for this question
+  document.getElementById(`${qid}-buttons`).style.display = "none";
+  document.getElementById(`btn-sol-${qid}`).style.display = "none";
+}
+
+function skip(qid) {
+  document.querySelectorAll(`input[name="${qid}"]`).forEach(r => r.disabled = true);
+  showSolutionButton(qid);
+}
+function showSolutionButton(qid) {
+  document.getElementById(`btn-sol-${qid}`).style.display = 'inline-block';
+  document.getElementById(`${qid}-buttons`).style.display = 'none';
+}
+function toggleSolution(id) {
+  const elem = document.getElementById(id);
+  elem.style.display = elem.style.display === 'block' ? 'none' : 'block';
+}
+
+function startTimer() {
+  const display = document.getElementById('timer');
+  const started = Date.now();
+  timerHandle = setInterval(() => {
+    const s = Math.floor((Date.now() - started) / 1000);
+    display.textContent = `${String((s / 60) | 0).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+  }, 1000);
+}
+
+function finalSubmit() {
+  clearInterval(timerHandle);
+
+  // 🔒 Disable all options after final submission
+  document.querySelectorAll("input[type=radio]").forEach(r => r.disabled = true);
+  document.querySelectorAll(".submit-button, .dontknow-button").forEach(btn => btn.style.display = "none");
+
+  let score = 0, detailHTML = '';
+  Q.forEach((q, index) => {
+    const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+    const chosen = checked ? checked.value : 'Not Answered';
+    const correct = (chosen === q.correct);
+    if (correct) score++;
+
+    detailHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${q.text}</td>
+        <td>${chosen}</td>
+        <td>${q.correct}</td>
+        <td>${correct ? '✅ Correct' : '❌ Incorrect'}</td>
+        <td>${q.solution}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('scoreText').innerText = `${student}, you scored ${score}/${Q.length}.`;
+  document.getElementById('scoreDetails').innerHTML = detailHTML;
+  document.getElementById('scorecard').style.display = 'block';
+  document.getElementById('printScoreBtn').style.display = 'inline-block';
+  document.getElementById('shareWhatsappBtn').style.display = 'inline-block';
+
+  if (window.MathJax) MathJax.typesetPromise(); // 🔹 Rerun MathJax
+}
+
+/* Print */
+function printQuestions() { printMode = "questions"; window.print(); }
+function printScorecard() {
+  document.getElementById("studentPrintName").innerText = student;
+  document.getElementById("examDateTime").innerText = "Exam Date & Time: " + examDateTime;
+  printMode = "scorecard"; window.print();
+}
+window.addEventListener('beforeprint', () => {
+  if (printMode === "questions") {
+    document.querySelector("#questions-container").style.display = "block";
+    document.querySelector("#scorecard").style.display = "none";
+    document.querySelector("#logo").style.display = "none";
+    document.querySelector("#name-container").style.display = "none";
+    document.querySelector("#timer").style.display = "none";
+    document.querySelector("#studentPrintName").style.display = "none";
+    document.querySelector("#examDateTime").style.display = "none";
+  }
+  if (printMode === "scorecard") {
+    document.querySelector("#questions-container").style.display = "none";
+    document.querySelector("#scorecard").style.display = "block";
+    document.querySelector("#logo").style.display = "block";
+    document.querySelector("#name-container").style.display = "none";
+    document.querySelector("#studentPrintName").style.display = "block";
+    document.querySelector("#examDateTime").style.display = "block";
+  }
+});
+window.addEventListener('afterprint', () => {
+  document.querySelector("#questions-container").style.display = "";
+  document.querySelector("#scorecard").style.display = "";
+  document.querySelector("#logo").style.display = "";
+  document.querySelector("#name-container").style.display = "";
+  document.querySelector("#timer").style.display = "";
+  document.querySelector("#studentPrintName").style.display = "none";
+  document.querySelector("#examDateTime").style.display = "none";
+});
+
+/* 🔹 WhatsApp Share */
+document.getElementById("shareWhatsappBtn").addEventListener("click", function () {
+  const whatsappNumber = "9108069409455"; // Must include country code (91 for India)
+  const scoreText = document.getElementById('scoreText').innerText;
+
+  let details = "Details:\n";
+  Q.forEach((q, i) => {
+    const qNum = i + 1;
+    const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+    const userAns = checked ? checked.value : "Not Answered";
+    const correctAns = q.correct;
+
+    if (userAns === correctAns) {
+      details += `Q${qNum} → ✅ Correct (Your Ans: ${userAns})\n`;
+    } else {
+      details += `Q${qNum} → ❌ Wrong (Your Ans: ${userAns} | Correct: ${correctAns})\n`;
+    }
+  });
+
+  const message = `Sir, I have shared my Test Result for checking. Thank you!\n\n📘 Quiz Title: ${quizTitle}\n👤 Student: ${student}\n${scoreText}\n\n${details}`;
+  const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, "_blank");
+});
+
+/* 🔹 Report Mistake Button Logic */
+const reportBtn = document.getElementById("reportBtn");
+const reportModal = document.getElementById("reportModal");
+const sendReport = document.getElementById("sendReport");
+const closeReport = document.getElementById("closeReport");
+const reportMsg = document.getElementById("reportMsg");
+
+reportBtn.onclick = () => {
+  reportModal.style.display = "block";
+};
+closeReport.onclick = () => {
+  reportModal.style.display = "none";
+  reportMsg.value = "";
+};
+sendReport.onclick = () => {
+  const msg = reportMsg.value.trim();
+  if (!msg) { alert("Please write your message before sending."); return; }
+
+  const whatsappNumber = "9108069409455"; // with country code
+  const message = `⚠️ Reported Mistake\n\n📘 Quiz Title: ${quizTitle}\n👤 Student: ${student || "Anonymous"}\n\n📝 Message:\n${msg}`;
+
+  const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, "_blank");
+
+  reportModal.style.display = "none";
+  reportMsg.value = "";
+};
+</script>
+
+</body>
+</html>
